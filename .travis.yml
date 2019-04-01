@@ -4,4 +4,10 @@ language: python
 # Set the python version to 3.6
 python: 3.6
 
-
+# command to install dependencies
+install:
+  - pip install -r requirements.txt
+  
+# command to run tests
+script:
+  - pytest
