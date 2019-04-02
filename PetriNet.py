@@ -32,8 +32,19 @@ def main(input, output, state):
                 u[0, count] = 1
                 print("Branched")
                 NM = NextMarking(A, state, u.T)
-                MarkingList.append(NM)
-                main(input, output, NM)
+                found = False
+                for elm in MarkingList:
+                    if np.array_equal(elm, NM):
+                        found = True
+                        break
+                if found:
+                    Cyclic = True
+                    print("Cycle Found")
+                else:
+                    MarkingList.append(NM)
+                    print(NM.T)
+                    main(input, output, NM)
+
     else:
         # Single Path
         NM = NextMarking(A, state, transitions.T)
@@ -45,9 +56,12 @@ def main(input, output, state):
 
         if found:
             Cyclic = True
+            print("Cycle Found")
         else:
             MarkingList.append(NM)
+            print(NM.T)
             main(input, output, NM)
+
 
 
 def GetTransitions(input, state):
@@ -64,7 +78,7 @@ def InvarientSolver(input, output):
     # x = nullspace(A)
     b = np.zeros([1, np.shape(A)[0]])
     x = A.nullspace()
-    tInvarient = False
+    tInvarient = len(x) > 0
     # for i in range(0, np.shape(x)[1]):
     #     tmp = NonNegInt(x[:, i])
     #     if all(tmp) == True:
@@ -72,7 +86,7 @@ def InvarientSolver(input, output):
     temp_A = Matrix(A.T)
     x = temp_A.nullspace()
     #x = nullspace(temp_A)
-    pInvarient = False
+    pInvarient = len(x) > 0
     #for i in range(0, np.shape(x)[1]):
     #    tmp = NonNegInt(x[:, i])
     #    if tmp == True:
@@ -96,24 +110,24 @@ def NonNegInt(X):
 
 def NextMarking(A, M, u):
     MPrime = M + np.dot(A, u)
-    print(MPrime.T)
+    # print(MPrime.T)
     return MPrime
 # Slide 5 PN_3 PPT
-input = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
-output = [[0, 1, 0, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]
-initialState = []
+input = np.asarray([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+output = np.asarray([[0, 1, 0, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]])
+initialState = np.asarray([[1], [1], [1], [1], [1]])
 # Slide 12 PN_3 PPT
-input = np.asarray([[1, 0, 0], [1, 0, 0], [1, 0, 1], [0, 1, 0]])
-output = np.asarray([[1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 0, 1]])
-initialState = np.asarray([[1], [0], [1], [0]])
+# input = np.asarray([[1, 0, 0], [1, 0, 0], [1, 0, 1], [0, 1, 0]])
+# output = np.asarray([[1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 0, 1]])
+# initialState = np.asarray([[1], [0], [1], [0]])
 # T Invarient from Internet
-input = np.asarray([[0, 1, 0, 2], [1, 1, 0, 0], [0, 0, 1, 0]])
-output = np.asarray([[1, 0, 0, 2], [0, 0, 1, 0], [0, 2, 0, 0]])
-initialState = np.asarray([[1], [1], [0]])
+# input = np.asarray([[0, 1, 0, 2], [1, 1, 0, 0], [0, 0, 1, 0]])
+# output = np.asarray([[1, 0, 0, 2], [0, 0, 1, 0], [0, 2, 0, 0]])
+# initialState = np.asarray([[1], [1], [0]])
 # P Invarient from PN_3 Slide 37
-input = np.asarray([[2, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [1, 0, 0, 1]])
-output = np.asarray([[0, 2, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [1, 0, 1, 0]])
-initialState = np.asarray([[3], [0], [1], [0]])
+# input = np.asarray([[2, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [1, 0, 0, 1]])
+# output = np.asarray([[0, 2, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [1, 0, 1, 0]])
+# initialState = np.asarray([[3], [0], [1], [0]])
 NumberOfIt = 0
 MarkingList = []
 Cyclic = False
