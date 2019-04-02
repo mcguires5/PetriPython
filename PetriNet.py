@@ -1,11 +1,10 @@
 import numpy as np
-
+from numpy.linalg import svd
 
 def main(input, output, state):
     global NumberOfIt
     global MarkingList
     global Dead
-    global Depth
     global Cyclic
     NumberOfIt = NumberOfIt + 1
     if NumberOfIt > 100:
@@ -17,7 +16,7 @@ def main(input, output, state):
         print("Error: Initial State Matrix is the wrong size must be length of- " + str(np.shape(input)[0]))
         return
     # Find Incidence Matrix
-    A = output-input
+    A = output - input
 
     transitions = GetTransitions(input, state)
     if sum(transitions[0, :]) == 0:
@@ -33,10 +32,7 @@ def main(input, output, state):
                 print("Branched")
                 NM = NextMarking(A, state, u.T)
                 MarkingList.append(NM)
-                Depth = Depth + 1
                 main(input, output, NM)
-                print(Depth)
-            Depth = 0
     else:
         # Single Path
         NM = NextMarking(A, state, transitions.T)
@@ -62,6 +58,38 @@ def GetTransitions(input, state):
     return u
 
 
+def InvarientSolver(input, output):
+    A = output - input
+    x = nullspace(A)
+    tInvarient = False
+    for i in range(0, np.shape(x)[1]):
+        tmp = NonNegInt(x[:, i])
+        if tmp == True:
+            tInvarient = True
+
+    x = nullspace(A.T)
+    pInvarient = False
+    for i in range(0, np.shape(x)[1]):
+        tmp = NonNegInt(x[:, i])
+        if tmp == True:
+            pInvarient = True
+
+    return tInvarient, pInvarient
+
+def nullspace(A, atol=1e-13, rtol=0):
+    A = np.atleast_2d(A)
+    u, s, vh = svd(A)
+    tol = max(atol, rtol * s[0])
+    nnz = (s >= tol).sum()
+    ns = vh[nnz:].conj().T
+    return ns
+
+def NonNegInt(X):
+    greaterZero = (all(y >= 0 for y in X) and any(y > 0 for y in X))
+    integer = np.equal(np.mod(X, 1), 0)
+    return greaterZero and integer
+
+
 def NextMarking(A, M, u):
     MPrime = M + np.dot(A, u)
     print(MPrime.T)
@@ -71,14 +99,20 @@ input = [[1, 0, 0, 0],[0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
 output = [[0, 1, 0, 0],[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]
 initialState = []
 # Slide 12 PN_3 PPT
-input = [[1, 0, 0], [1, 0, 0], [1, 0, 1], [0, 1, 0]]
-output = [[1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 0, 1]]
-initialState = [[1], [0], [1], [0]]
+input = np.asarray([[1, 0, 0], [1, 0, 0], [1, 0, 1], [0, 1, 0]])
+output = np.asarray([[1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 0, 1]])
+initialState = np.asarray([[1], [0], [1], [0]])
+# T Invarient from Internet
+input = np.asarray([[0, 1, 0, 2], [1, 1, 0, 0], [0, 0, 1, 0]])
+output = np.asarray([[1, 0, 0, 2], [0, 0, 1, 0], [0, 2, 0, 0]])
+initialState = np.asarray([[1], [1], [0]])
 NumberOfIt = 0
-Depth = 0
 MarkingList = []
 Cyclic = False
 Dead = False
-main(np.asarray(input), np.asarray(output), np.asarray(initialState))
-print("Cyclic = " + str(Cyclic))
+main(input, output, initialState)
+tInvarient, pInvarient = InvarientSolver(input, output)
+print("T-Invarient = " + str(tInvarient))
+print("P-Invarient = " + str(pInvarient))
+print("Cyclic Without Omega = " + str(Cyclic))
 print("Dead = " + str(Dead))
