@@ -1,5 +1,6 @@
 import numpy as np
 from numpy.linalg import svd
+from sympy import *
 
 def main(input, output, state):
     global NumberOfIt
@@ -59,20 +60,23 @@ def GetTransitions(input, state):
 
 
 def InvarientSolver(input, output):
-    A = output - input
-    x = nullspace(A)
+    A = Matrix(output - input)
+    # x = nullspace(A)
+    b = np.zeros([1, np.shape(A)[0]])
+    x = A.nullspace()
     tInvarient = False
-    for i in range(0, np.shape(x)[1]):
-        tmp = NonNegInt(x[:, i])
-        if tmp == True:
-            tInvarient = True
-
-    x = nullspace(A.T)
+    # for i in range(0, np.shape(x)[1]):
+    #     tmp = NonNegInt(x[:, i])
+    #     if all(tmp) == True:
+    #         tInvarient = True
+    temp_A = Matrix(A.T)
+    x = temp_A.nullspace()
+    #x = nullspace(temp_A)
     pInvarient = False
-    for i in range(0, np.shape(x)[1]):
-        tmp = NonNegInt(x[:, i])
-        if tmp == True:
-            pInvarient = True
+    #for i in range(0, np.shape(x)[1]):
+    #    tmp = NonNegInt(x[:, i])
+    #    if tmp == True:
+    #        pInvarient = True
 
     return tInvarient, pInvarient
 
@@ -95,8 +99,8 @@ def NextMarking(A, M, u):
     print(MPrime.T)
     return MPrime
 # Slide 5 PN_3 PPT
-input = [[1, 0, 0, 0],[0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
-output = [[0, 1, 0, 0],[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]
+input = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+output = [[0, 1, 0, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]]
 initialState = []
 # Slide 12 PN_3 PPT
 input = np.asarray([[1, 0, 0], [1, 0, 0], [1, 0, 1], [0, 1, 0]])
@@ -106,6 +110,10 @@ initialState = np.asarray([[1], [0], [1], [0]])
 input = np.asarray([[0, 1, 0, 2], [1, 1, 0, 0], [0, 0, 1, 0]])
 output = np.asarray([[1, 0, 0, 2], [0, 0, 1, 0], [0, 2, 0, 0]])
 initialState = np.asarray([[1], [1], [0]])
+# P Invarient from PN_3 Slide 37
+input = np.asarray([[2, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [1, 0, 0, 1]])
+output = np.asarray([[0, 2, 0, 0], [1, 0, 0, 0], [0, 0, 0, 1], [1, 0, 1, 0]])
+initialState = np.asarray([[3], [0], [1], [0]])
 NumberOfIt = 0
 MarkingList = []
 Cyclic = False
