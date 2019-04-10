@@ -7,6 +7,7 @@ def main(input, output, state):
     global MarkingList
     global Dead
     global Cyclic
+    global TabIndex
     NumberOfIt = NumberOfIt + 1
     if NumberOfIt > 100:
         return
@@ -30,7 +31,7 @@ def main(input, output, state):
             u = np.zeros([1, np.shape(transitions)[1]])
             if transitions[0, count] == 1:
                 u[0, count] = 1
-                print("Branched")
+                # print("Branched")
                 NM = NextMarking(A, state, u.T)
                 found = False
                 for elm in MarkingList:
@@ -39,11 +40,17 @@ def main(input, output, state):
                         break
                 if found:
                     Cyclic = True
-                    print("Cycle Found")
+                    for i in range(TabIndex):
+                        print('    ', end=' ')
+                    print("Cycle Found" + str(NM.T))
                 else:
                     MarkingList.append(NM)
+                    for i in range(TabIndex):
+                        print('    ', end=' ')
                     print(NM.T)
+                    TabIndex = TabIndex + 1
                     main(input, output, NM)
+                    TabIndex = TabIndex - 1
 
     else:
         # Single Path
@@ -56,9 +63,13 @@ def main(input, output, state):
 
         if found:
             Cyclic = True
-            print("Cycle Found")
+            for i in range(TabIndex):
+                print('    ', end=' ')
+            print("Cycle Found" + str(NM.T))
         else:
             MarkingList.append(NM)
+            for i in range(TabIndex):
+                print('    ', end=' ')
             print(NM.T)
             main(input, output, NM)
 
@@ -75,22 +86,13 @@ def GetTransitions(input, state):
 
 def InvarientSolver(input, output):
     A = Matrix(output - input)
-    # x = nullspace(A)
-    b = np.zeros([1, np.shape(A)[0]])
+
     x = A.nullspace()
     tInvarient = len(x) > 0
-    # for i in range(0, np.shape(x)[1]):
-    #     tmp = NonNegInt(x[:, i])
-    #     if all(tmp) == True:
-    #         tInvarient = True
+
     temp_A = Matrix(A.T)
     x = temp_A.nullspace()
-    #x = nullspace(temp_A)
     pInvarient = len(x) > 0
-    #for i in range(0, np.shape(x)[1]):
-    #    tmp = NonNegInt(x[:, i])
-    #    if tmp == True:
-    #        pInvarient = True
 
     return tInvarient, pInvarient
 
@@ -102,24 +104,21 @@ def nullspace(A, atol=1e-13, rtol=0):
     ns = vh[nnz:].conj().T
     return ns
 
-def NonNegInt(X):
-    greaterZero = (all(y >= 0 for y in X) and any(y > 0 for y in X))
-    integer = np.equal(np.mod(X, 1), 0)
-    return greaterZero and integer
-
 
 def NextMarking(A, M, u):
     MPrime = M + np.dot(A, u)
     # print(MPrime.T)
     return MPrime
+
+
 # Slide 5 PN_3 PPT
-input = np.asarray([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
-output = np.asarray([[0, 1, 0, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]])
-initialState = np.asarray([[1], [1], [1], [1], [1]])
+# input = np.asarray([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 1, 0], [0, 0, 0, 1]])
+# output = np.asarray([[0, 1, 0, 0], [1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]])
+# initialState = np.asarray([[1], [0], [1], [1], [1]])
 # Slide 12 PN_3 PPT
-# input = np.asarray([[1, 0, 0], [1, 0, 0], [1, 0, 1], [0, 1, 0]])
-# output = np.asarray([[1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 0, 1]])
-# initialState = np.asarray([[1], [0], [1], [0]])
+input = np.asarray([[1, 0, 0], [1, 0, 0], [1, 0, 1], [0, 1, 0]])
+output = np.asarray([[1, 0, 0], [0, 1, 0], [0, 1, 0], [0, 0, 1]])
+initialState = np.asarray([[1], [0], [1], [0]])
 # T Invarient from Internet
 # input = np.asarray([[0, 1, 0, 2], [1, 1, 0, 0], [0, 0, 1, 0]])
 # output = np.asarray([[1, 0, 0, 2], [0, 0, 1, 0], [0, 2, 0, 0]])
@@ -132,9 +131,10 @@ NumberOfIt = 0
 MarkingList = []
 Cyclic = False
 Dead = False
+TabIndex = 0
 main(input, output, initialState)
 tInvarient, pInvarient = InvarientSolver(input, output)
 print("T-Invarient = " + str(tInvarient))
 print("P-Invarient = " + str(pInvarient))
-print("Cyclic Without Omega = " + str(Cyclic))
+print("Cycle Found = " + str(Cyclic))
 print("Dead = " + str(Dead))
